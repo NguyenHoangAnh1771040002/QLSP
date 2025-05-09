@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Sản phẩm</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Quản lý Sản phẩm</h1>
+        <div class="card p-3">
+            <h3>Thêm sản phẩm mới</h3>
+            <form id="productForm">
+                <div class="mb-3">
+                    <label for="productName" class="form-label">Tên sản phẩm</label>
+                    <input type="text" id="productName" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="productPrice" class="form-label">Giá</label>
+                    <input type="number" id="productPrice" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="productDescription" class="form-label">Mô tả</label>
+                    <textarea id="productDescription" class="form-control" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="productImage" class="form-label">Hình ảnh sản phẩm</label>
+                    <input type="file" id="productImage" class="form-control" accept="image/*">
+                </div>
+                <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+            </form>
+        </div>
+        <div class="mt-4">
+            <h3>Danh sách sản phẩm</h3>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá</th>
+                        <th>Mô tả</th>
+                        <th>Hình ảnh</th>
+                        <th>Thời gian</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="productList">
+                    <!-- Danh sách sản phẩm sẽ được hiển thị ở đây -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const productList = [];
+        const productListElement = document.getElementById('productList');
+        const productForm = document.getElementById('productForm');
+        const productNameInput = document.getElementById('productName');
+        const productPriceInput = document.getElementById('productPrice');
+        const productDescriptionInput = document.getElementById('productDescription');
+        const submitButton = productForm.querySelector('button[type="submit"]');
+        let editingProductId = null; // Biến lưu trữ ID sản phẩm đang chỉnh sửa
+
+        // Thêm hoặc sửa sản phẩm
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = productNameInput.value;
+            const price = productPriceInput.value;
+            const description = productDescriptionInput.value;
+            const imageFile = document.getElementById('productImage').files[0];
+            const imageUrl = imageFile ? URL.createObjectURL(imageFile) : ''; // Nếu không có file, để trống
+            const timestamp = new Date().toLocaleString(); // Lấy thời gian hiện tại
+
+            if (editingProductId) {
+                // Sửa sản phẩm
+                const product = productList.find(product => product.id === editingProductId);
+                if (product) {
+                    product.name = name;
+                    product.price = price;
+                    product.description = description;
+                    product.imageUrl = imageUrl || product.imageUrl; // Giữ hình ảnh cũ nếu không thay đổi
+                    product.timestamp = timestamp; // Cập nhật thời gian sửa
+                }
+                editingProductId = null;
+                submitButton.textContent = 'Thêm sản phẩm'; // Đổi lại nút thành "Thêm sản phẩm"
+            } else {
+                // Thêm sản phẩm mới
+                const product = { id: Date.now(), name, price, description, imageUrl, timestamp };
+                productList.push(product);
+            }
+
+            renderProductList();
+            productForm.reset();
+        });
+
+        // Hiển thị danh sách sản phẩm
+        function renderProductList() {
+            productListElement.innerHTML = '';
+            productList.forEach((product, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${product.name}</td>
+                    <td>${product.price}</td>
+                    <td>${product.description}</td>
+                    <td><img src="${product.imageUrl}" alt="Hình ảnh" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                    <td>${product.timestamp}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm" onclick="editProduct(${product.id})">Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmDeleteProduct(${product.id})">Xóa</button>
+                    </td>
+                `;
+                productListElement.appendChild(row);
+            });
+        }
+
+        // Xóa sản phẩm (hiển thị cảnh báo xác nhận)
+        function confirmDeleteProduct(id) {
+            if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')) {
+                deleteProduct(id);
+            }
+        }
+
+        function deleteProduct(id) {
+            const index = productList.findIndex(product => product.id === id);
+            if (index !== -1) {
+                productList.splice(index, 1);
+                renderProductList();
+            }
+        }
+
+        // Sửa sản phẩm
+        function editProduct(id) {
+            const product = productList.find(product => product.id === id);
+            if (product) {
+                productNameInput.value = product.name;
+                productPriceInput.value = product.price;
+                productDescriptionInput.value = product.description;
+
+                editingProductId = id; // Lưu lại ID sản phẩm đang chỉnh sửa
+                submitButton.textContent = 'Sửa sản phẩm'; // Đổi nút thành "Sửa sản phẩm"
+            }
+        }
+    </script>
+</body>
+</html>
