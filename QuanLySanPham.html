@@ -62,6 +62,20 @@
         const submitButton = productForm.querySelector('button[type="submit"]');
         let editingProductId = null; // Biến lưu trữ ID sản phẩm đang chỉnh sửa
 
+        // Lưu danh sách sản phẩm vào Local Storage
+        function saveToLocalStorage() {
+            localStorage.setItem('productList', JSON.stringify(productList));
+        }
+
+        // Tải danh sách sản phẩm từ Local Storage
+        function loadFromLocalStorage() {
+            const storedProducts = localStorage.getItem('productList');
+            if (storedProducts) {
+                productList.push(...JSON.parse(storedProducts));
+                renderProductList();
+            }
+        }
+
         // Thêm hoặc sửa sản phẩm
         productForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -90,6 +104,7 @@
                 productList.push(product);
             }
 
+            saveToLocalStorage(); // Lưu danh sách sản phẩm vào Local Storage
             renderProductList();
             productForm.reset();
         });
@@ -126,6 +141,7 @@
             const index = productList.findIndex(product => product.id === id);
             if (index !== -1) {
                 productList.splice(index, 1);
+                saveToLocalStorage(); // Cập nhật Local Storage sau khi xóa
                 renderProductList();
             }
         }
@@ -142,6 +158,8 @@
                 submitButton.textContent = 'Sửa sản phẩm'; // Đổi nút thành "Sửa sản phẩm"
             }
         }
+        // Tải danh sách sản phẩm từ Local Storage khi trang được tải
+        loadFromLocalStorage();
     </script>
 </body>
 </html>
